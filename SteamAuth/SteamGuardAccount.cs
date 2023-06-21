@@ -290,6 +290,13 @@ namespace SteamAuth
             return endpoint + queryString;
         }
 
+        public string GenerateConfirmationHtmlURL(string tag = "conf")
+        {
+            string endpoint = APIEndpoints.COMMUNITY_BASE + "/mobileconf/conf?";
+            string queryString = GenerateConfirmationQueryParams(tag);
+            return endpoint + queryString;
+        }
+
         public string GenerateConfirmationQueryParams(string tag)
         {
             if (String.IsNullOrEmpty(DeviceID))
