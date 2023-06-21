@@ -161,30 +161,30 @@ namespace SteamAuth
             public List<string> summary { get; set; }
             public object warn { get; set; }
         }
+
         public class ConfResponseJson
         {
             public bool success { get; set; }
             public List<Conf> conf { get; set; }
         }
 
-
-        private Confirmation[] FetchConfirmationInternal(string responseJson)
-        {
+        private Confirmation[] FetchConfirmationInternal(string responseJson) {
 
             List<Confirmation> ret = new List<Confirmation>();
             ConfResponseJson confJsonResponse = JsonConvert.DeserializeObject<ConfResponseJson>(responseJson);
             foreach (Conf conf in confJsonResponse.conf)
             {
-                ret.Add(new Confirmation(conf.id, conf.nonce, conf.type, conf.creator_id));
+                ret.Add(new Confirmation(Convert.ToUInt64(conf.id), Convert.ToUInt64(conf.nonce), conf.type, Convert.ToUInt64(conf.creator_id), conf.headline, conf.summary, conf.creation_time, conf.icon));
             }
+
             return ret.ToArray();
         }
 
         /// <summary>
-        /// Deprecated. Simply returns conf.CreatorID.
+        /// Deprecated. Simply returns conf.Creator.
         /// </summary>
         /// <param name="conf"></param>
-        /// <returns>The CreatorID field of conf</returns>
+        /// <returns>The Creator field of conf</returns>
         public long GetConfirmationTradeOfferID(Confirmation conf)
         {
             if (conf.ConfType != Confirmation.ConfirmationType.Trade)
@@ -195,12 +195,12 @@ namespace SteamAuth
 
         public bool AcceptMultipleConfirmations(Confirmation[] confs)
         {
-            return _sendMultiConfirmationAjax(confs, "allow");
+            return _sendMultiConfirmationAjax(confs, "cancel");
         }
 
         public bool DenyMultipleConfirmations(Confirmation[] confs)
         {
-            return _sendMultiConfirmationAjax(confs, "cancel");
+            return _sendMultiConfirmationAjax(confs, "allow");
         }
 
         public bool AcceptConfirmation(Confirmation conf)
@@ -227,8 +227,8 @@ namespace SteamAuth
 
         private ConfirmationDetailsResponse _getConfirmationDetails(Confirmation conf)
         {
-            string url = APIEndpoints.COMMUNITY_BASE + "/mobileconf/details/" + conf.ID + "?";
-            string queryString = GenerateConfirmationQueryParams("details");
+            string url = APIEndpoints.COMMUNITY_BASE + "/mobileconf/detailspage/" + conf.ID + "?";
+            string queryString = GenerateConfirmationQueryParams("detail");
             url += queryString;
 
             CookieContainer cookies = new CookieContainer();
@@ -283,16 +283,9 @@ namespace SteamAuth
             return confResponse.Success;
         }
 
-        public string GenerateConfirmationURL(string tag = "conf")
+        public string GenerateConfirmationURL(string tag = "list")
         {
             string endpoint = APIEndpoints.COMMUNITY_BASE + "/mobileconf/getlist?";
-            string queryString = GenerateConfirmationQueryParams(tag);
-            return endpoint + queryString;
-        }
-
-        public string GenerateConfirmationHtmlURL(string tag = "conf")
-        {
-            string endpoint = APIEndpoints.COMMUNITY_BASE + "/mobileconf/conf?";
             string queryString = GenerateConfirmationQueryParams(tag);
             return endpoint + queryString;
         }

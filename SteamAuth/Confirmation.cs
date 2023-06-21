@@ -32,13 +32,34 @@ namespace SteamAuth
         /// The type of this confirmation.
         /// </summary>
         public ConfirmationType ConfType;
-        
-        public Confirmation(ulong id, ulong nonce, int type, ulong creator_id)
+
+        /// <summary>
+        /// Username of the trade partner
+        /// </summary>
+        public string Headline;
+
+        /// <summary>
+        /// Summary of the trade
+        /// </summary>
+        public List<string> Summary;
+
+        /// <summary>
+        /// Creation time of confirmation
+        /// </summary>
+        public int CreationTime;
+
+        /// <summary>
+        /// Icon of the trade partner
+        /// </summary>
+        public string Icon;
+
+        public Confirmation(ulong id, ulong nonce, int type, ulong creator_id, string headline, List<string> summary, int creation_time, string icon)
         {
             this.ID = id;
             this.Nonce = nonce;
             this.IntType = type;
             this.CreatorID = creator_id;
+            this.Headline = headline;
 
             //Do a switch simply because we're not 100% certain of all the possible types.
             switch (type)
