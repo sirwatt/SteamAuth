@@ -14,9 +14,9 @@ namespace SteamAuth
         public ulong ID;
 
         /// <summary>
-        /// The unique key used to act upon this confirmation.
+        /// The unique nonce used to act upon this confirmation.
         /// </summary>
-        public ulong Key;
+        public ulong Nonce;
 
         /// <summary>
         /// The value of the data-type HTML attribute returned for this contribution.
@@ -26,19 +26,19 @@ namespace SteamAuth
         /// <summary>
         /// Represents either the Trade Offer ID or market transaction ID that caused this confirmation to be created.
         /// </summary>
-        public ulong Creator;
+        public ulong CreatorID;
 
         /// <summary>
         /// The type of this confirmation.
         /// </summary>
         public ConfirmationType ConfType;
         
-        public Confirmation(ulong id, ulong key, int type, ulong creator)
+        public Confirmation(ulong id, ulong nonce, int type, ulong creator_id)
         {
             this.ID = id;
-            this.Key = key;
+            this.Nonce = nonce;
             this.IntType = type;
-            this.Creator = creator;
+            this.CreatorID = creator_id;
 
             //Do a switch simply because we're not 100% certain of all the possible types.
             switch (type)

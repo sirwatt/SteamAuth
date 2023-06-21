@@ -145,58 +145,52 @@ namespace SteamAuth
             return FetchConfirmationInternal(response);
         }
 
-        private Confirmation[] FetchConfirmationInternal(string response)
+        public class Conf
+        {
+            public int type { get; set; }
+            public string type_name { get; set; }
+            public string id { get; set; }
+            public string creator_id { get; set; }
+            public string nonce { get; set; }
+            public int creation_time { get; set; }
+            public string cancel { get; set; }
+            public string accept { get; set; }
+            public string icon { get; set; }
+            public bool multi { get; set; }
+            public string headline { get; set; }
+            public List<string> summary { get; set; }
+            public object warn { get; set; }
+        }
+        public class ConfResponseJson
+        {
+            public bool success { get; set; }
+            public List<Conf> conf { get; set; }
+        }
+
+
+        private Confirmation[] FetchConfirmationInternal(string responseJson)
         {
 
-            /*So you're going to see this abomination and you're going to be upset.
-              It's understandable. But the thing is, regex for HTML -- while awful -- makes this way faster than parsing a DOM, plus we don't need another library.
-              And because the data is always in the same place and same format... It's not as if we're trying to naturally understand HTML here. Just extract strings.
-              I'm sorry. */
-
-            Regex confRegex = new Regex("<div class=\"mobileconf_list_entry\" id=\"conf[0-9]+\" data-confid=\"(\\d+)\" data-key=\"(\\d+)\" data-type=\"(\\d+)\" data-creator=\"(\\d+)\"");
-
-            if (response == null || !confRegex.IsMatch(response))
-            {
-                if (response == null || !response.Contains("<div>Nothing to confirm</div>"))
-                {
-                    throw new WGTokenInvalidException();
-                }
-
-                return new Confirmation[0];
-            }
-
-            MatchCollection confirmations = confRegex.Matches(response);
-
             List<Confirmation> ret = new List<Confirmation>();
-            foreach (Match confirmation in confirmations)
+            ConfResponseJson confJsonResponse = JsonConvert.DeserializeObject<ConfResponseJson>(responseJson);
+            foreach (Conf conf in confJsonResponse.conf)
             {
-                if (confirmation.Groups.Count != 5) continue;
-
-                if (!ulong.TryParse(confirmation.Groups[1].Value, out ulong confID) ||
-                    !ulong.TryParse(confirmation.Groups[2].Value, out ulong confKey) ||
-                    !int.TryParse(confirmation.Groups[3].Value, out int confType) ||
-                    !ulong.TryParse(confirmation.Groups[4].Value, out ulong confCreator))
-                {
-                    continue;
-                }
-
-                ret.Add(new Confirmation(confID, confKey, confType, confCreator));
+                ret.Add(new Confirmation(conf.id, conf.nonce, conf.type, conf.creator_id));
             }
-
             return ret.ToArray();
         }
 
         /// <summary>
-        /// Deprecated. Simply returns conf.Creator.
+        /// Deprecated. Simply returns conf.CreatorID.
         /// </summary>
         /// <param name="conf"></param>
-        /// <returns>The Creator field of conf</returns>
+        /// <returns>The CreatorID field of conf</returns>
         public long GetConfirmationTradeOfferID(Confirmation conf)
         {
             if (conf.ConfType != Confirmation.ConfirmationType.Trade)
                 throw new ArgumentException("conf must be a trade confirmation.");
 
-            return (long)conf.Creator;
+            return (long)conf.CreatorID;
         }
 
         public bool AcceptMultipleConfirmations(Confirmation[] confs)
@@ -254,7 +248,7 @@ namespace SteamAuth
             string url = APIEndpoints.COMMUNITY_BASE + "/mobileconf/ajaxop";
             string queryString = "?op=" + op + "&";
             queryString += GenerateConfirmationQueryParams(op);
-            queryString += "&cid=" + conf.ID + "&ck=" + conf.Key;
+            queryString += "&cid=" + conf.ID + "&ck=" + conf.Nonce;
             url += queryString;
 
             CookieContainer cookies = new CookieContainer();
@@ -275,7 +269,7 @@ namespace SteamAuth
             string query = "op=" + op + "&" + GenerateConfirmationQueryParams(op);
             foreach (var conf in confs)
             {
-                query += "&cid[]=" + conf.ID + "&ck[]=" + conf.Key;
+                query += "&cid[]=" + conf.ID + "&ck[]=" + conf.Nonce;
             }
 
             CookieContainer cookies = new CookieContainer();
@@ -291,7 +285,7 @@ namespace SteamAuth
 
         public string GenerateConfirmationURL(string tag = "conf")
         {
-            string endpoint = APIEndpoints.COMMUNITY_BASE + "/mobileconf/conf?";
+            string endpoint = APIEndpoints.COMMUNITY_BASE + "/mobileconf/getlist?";
             string queryString = GenerateConfirmationQueryParams(tag);
             return endpoint + queryString;
         }
