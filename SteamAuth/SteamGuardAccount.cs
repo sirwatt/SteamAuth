@@ -195,12 +195,12 @@ namespace SteamAuth
 
         public bool AcceptMultipleConfirmations(Confirmation[] confs)
         {
-            return _sendMultiConfirmationAjax(confs, "cancel");
+            return _sendMultiConfirmationAjax(confs, "allow");
         }
 
         public bool DenyMultipleConfirmations(Confirmation[] confs)
         {
-            return _sendMultiConfirmationAjax(confs, "allow");
+            return _sendMultiConfirmationAjax(confs, "cancel");
         }
 
         public bool AcceptConfirmation(Confirmation conf)
